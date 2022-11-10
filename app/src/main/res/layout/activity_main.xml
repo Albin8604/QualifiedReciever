@@ -7,11 +7,73 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"        >
+
+        <Button
+            android:id="@+id/darkModeBtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/dark_mode_off_btn"
+            android:clickable="true"
+            android:contentDescription="@string/night_mode_button_text"
+            android:focusable="true" />
+    </RelativeLayout>
+
     <ImageView
         android:id="@+id/logo"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/logoDescritpion"
-        app:srcCompat="@drawable/lightmode"
+        android:layout_height="223dp"
+        android:contentDescription="@string/logoDescription"
+        app:srcCompat="@drawable/light_mode_logo"
         tools:ignore="ImageContrastCheck" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="100dp"
+        android:layout_marginRight="100dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/scanBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:background="@color/qualifiedReaderBlue"
+            android:text="@string/scan_btn_text"
+            android:radius="15dp"/>
+
+        <Button
+            android:id="@+id/generateBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:background="@color/qualifiedReaderBlue"
+            android:text="@string/generate_btn_text"
+            android:radius="15dp"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textViewHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="@string/history_text"
+        android:textAlignment="center"
+        android:textColor="@color/qualifiedReaderBlue"
+        android:textSize="35sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:id="@+id/layoutHistory" />
+
 </LinearLayout>
