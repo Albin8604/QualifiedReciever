@@ -76,17 +76,17 @@ public class HistoryItem {
         return getTimestamp().format(FORMATTER);
     }
 
-    public ImageView convertQrCodeToImageView(Context context){
+    public ImageView convertQrCodeToImageView(Context context) {
         ImageView imageView = new ImageView(context);
         imageView.setImageBitmap(getQrCode());
         return imageView;
     }
 
     @SuppressLint("ResourceAsColor")
-    public LinearLayout convertToLayout(Context context){
+    public LinearLayout convertToLayout(Context context) {
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-        linearLayout.setBackgroundColor(R.color.qualifiedReaderBlue);
+        linearLayout.setBackgroundResource(R.drawable.rounded_corner);
 
 
         linearLayout.addView(convertQrCodeToImageView(context));
@@ -95,7 +95,7 @@ public class HistoryItem {
         informationLayout.setOrientation(LinearLayout.VERTICAL);
 
         TextView contentView = new TextView(context);
-        contentView.setText(getContent());
+        contentView.setText(buildPreview());
 
         TextView typeView = new TextView(context);
         typeView.setText(getType().toString());
@@ -110,6 +110,17 @@ public class HistoryItem {
         linearLayout.addView(informationLayout);
 
         return linearLayout;
+    }
+
+    private String buildPreview() {
+        if (getType() == QRCodeType.GeneratedWIFI) {
+            return "TODO";
+        }
+        if (getContent().length() > 15) {
+            return getContent().substring(0, 15);
+        }
+
+        return getContent();
     }
 
     @Override

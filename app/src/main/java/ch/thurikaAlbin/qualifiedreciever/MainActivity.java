@@ -60,12 +60,10 @@ public class MainActivity extends AppCompatActivity {
 
         final LinearLayout historyLayout = findViewById(R.id.layoutHistory);
 
-        Intent intent = getIntent();
-        Bundle bundle = intent.getExtras();
 
         historyLayout.removeAllViews();
 
-        if (bundle == null && DataHandler.isHistoryEmpty()) {
+        if (DataHandler.isHistoryEmpty()) {
             Log.d("883", "No extras set in Intent");
 
             TextView textView = new TextView(this);
@@ -74,17 +72,6 @@ public class MainActivity extends AppCompatActivity {
 
             historyLayout.addView(textView);
             return;
-        }
-
-        try {
-            Object historyItem = intent.getExtras().get("QR_CODE_ADD");
-            if (historyItem != null) {
-                DataHandler.addHistoryItem((HistoryItem) historyItem);
-            }
-
-        } catch (Exception e) {
-            Log.e("EXCEPTION", e.getMessage());
-            Log.i("EXCEPTION", "no intent with generated QR-Code exists");
         }
 
         DataHandler.convertHistoryToLayout(this).forEach(historyLayout::addView);
@@ -147,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        fillHistory();
     }
 
     @Override

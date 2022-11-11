@@ -7,4 +7,11 @@
     <string name="generate_btn_text">Generate</string>
     <string name="history_text">History</string>
     <string name="empty_history_text">No QR-Codes in History</string>
+    <string name="choose_file_text">Choose File</string>
+    <string name="url_text_prompt">URL…</string>
+    <string name="generationType_name">Generation Type</string>
+    <string name="generated_qr_code_desc">generated qr code</string>
+    <string name="generate_qr_code_btn_text">Generate QR-Code</string>
+    <string name="download_button_description">Download Button</string>
+    <string name="ssid_prompt_text">Name (SSID)</string>
 </resources>

@@ -2,16 +2,16 @@ package ch.thurikaAlbin.qualifiedreciever.qrCode;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.widget.ImageView;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+
 public class QRCodeGenerator {
 
-    private static final int SIZE = 200;
+    private static final int SIZE = 300;
 
     private final String content;
 
@@ -27,13 +27,13 @@ public class QRCodeGenerator {
         return buildImage(bitMatrix);
     }
 
-    private Bitmap buildImage(BitMatrix bitMatrix){
+    private Bitmap buildImage(BitMatrix bitMatrix) {
         final int height = bitMatrix.getHeight();
         final int width = bitMatrix.getWidth();
         Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-        for (int x = 0; x < width; x++){
-            for (int y = 0; y < height; y++){
-                bmp.setPixel(x, y, bitMatrix.get(x,y) ? Color.BLACK : Color.WHITE);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.parseColor("#3FBAC2"));
             }
         }
         return bmp;
