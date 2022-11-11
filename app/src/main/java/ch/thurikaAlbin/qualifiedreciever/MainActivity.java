@@ -1,6 +1,7 @@
 package ch.thurikaAlbin.qualifiedreciever;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,16 +11,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.google.zxing.WriterException;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanIntentResult;
 import com.journeyapps.barcodescanner.ScanOptions;
 
+import ch.thurikaAlbin.qualifiedreciever.data.DataHandler;
 import ch.thurikaAlbin.qualifiedreciever.data.model.HistoryItem;
+import ch.thurikaAlbin.qualifiedreciever.data.model.QRCodeType;
+import ch.thurikaAlbin.qualifiedreciever.qrCode.QRCodeGenerator;
 
+@RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
     public static boolean isOnDarkMode = false;
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), this::handleResult);
@@ -49,12 +56,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fillHistory() {
+        Log.d("8878", DataHandler.getHistoryAsString());
+
         final LinearLayout historyLayout = findViewById(R.id.layoutHistory);
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
 
-        if (bundle == null) {
+        historyLayout.removeAllViews();
+
+        if (bundle == null && DataHandler.isHistoryEmpty()) {
             Log.d("883", "No extras set in Intent");
 
             TextView textView = new TextView(this);
@@ -66,12 +77,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
-            HistoryItem historyItem = (HistoryItem) intent.getExtras().get("QR_CODE_ADD");
+            Object historyItem = intent.getExtras().get("QR_CODE_ADD");
+            if (historyItem != null) {
+                DataHandler.addHistoryItem((HistoryItem) historyItem);
+            }
 
-        } catch (ClassCastException e) {
+        } catch (Exception e) {
             Log.e("EXCEPTION", e.getMessage());
+            Log.i("EXCEPTION", "no intent with generated QR-Code exists");
         }
 
+        DataHandler.convertHistoryToLayout(this).forEach(historyLayout::addView);
     }
 
     private void switchBetweenDarkAndLightMode() {
@@ -91,6 +107,8 @@ public class MainActivity extends AppCompatActivity {
         options.setPrompt("Hold Camera in front of QR-Code");
         options.setOrientationLocked(true);
         options.setCaptureActivity(CaptureAct.class);
+        options.setBeepEnabled(false);
+
         barLauncher.launch(options);
     }
 
@@ -100,14 +118,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleResult(ScanIntentResult result) {
-        if (result.getContents() != null) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Result");
-            builder.setMessage(result.getContents());
-            builder.setPositiveButton("OK", (dialogInterface, i) -> {
-                dialogInterface.dismiss();
-            }).show();
+        try {
+
+            if (result.getContents() != null) {
+                HistoryItem historyItem = new HistoryItem();
+
+                historyItem.setContent(result.getContents());
+                historyItem.setType(QRCodeType.Scanned);
+                historyItem.setQrCode(new QRCodeGenerator(result.getContents()).generateQRCodeImage());
+
+                DataHandler.addHistoryItem(historyItem);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Result");
+                builder.setMessage(result.getContents());
+                builder.setPositiveButton("OK", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                }).show();
+            }
+
+            fillHistory();
+        } catch (WriterException e) {
+            Log.e("EXCEPTION", e.getMessage());
         }
+
     }
 
     @Override

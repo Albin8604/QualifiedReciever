@@ -1,15 +1,21 @@
 package ch.thurikaAlbin.qualifiedreciever.data.model;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Build;
-import android.widget.Button;
-import android.widget.ImageButton;
+import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import ch.thurikaAlbin.qualifiedreciever.R;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class HistoryItem {
@@ -17,7 +23,7 @@ public class HistoryItem {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(PATTERN);
 
     private Integer id;
-    private ImageView qrCode;
+    private Bitmap qrCode;
     private String content;
     private QRCodeType type;
     private LocalDateTime timestamp;
@@ -34,11 +40,11 @@ public class HistoryItem {
         this.id = id;
     }
 
-    public ImageView getQrCode() {
+    public Bitmap getQrCode() {
         return qrCode;
     }
 
-    public void setQrCode(ImageView qrCode) {
+    public void setQrCode(Bitmap qrCode) {
         this.qrCode = qrCode;
     }
 
@@ -70,11 +76,50 @@ public class HistoryItem {
         return getTimestamp().format(FORMATTER);
     }
 
-    public Button convertToButton(Context context){
-        Button button = new Button(context);
+    public ImageView convertQrCodeToImageView(Context context){
+        ImageView imageView = new ImageView(context);
+        imageView.setImageBitmap(getQrCode());
+        return imageView;
+    }
+
+    @SuppressLint("ResourceAsColor")
+    public LinearLayout convertToLayout(Context context){
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayout.setBackgroundColor(R.color.qualifiedReaderBlue);
 
 
+        linearLayout.addView(convertQrCodeToImageView(context));
 
-        return button;
+        LinearLayout informationLayout = new LinearLayout(context);
+        informationLayout.setOrientation(LinearLayout.VERTICAL);
+
+        TextView contentView = new TextView(context);
+        contentView.setText(getContent());
+
+        TextView typeView = new TextView(context);
+        typeView.setText(getType().toString());
+
+        TextView timeStampView = new TextView(context);
+        timeStampView.setText(getFormattedTimestamp());
+
+        informationLayout.addView(contentView);
+        informationLayout.addView(typeView);
+        informationLayout.addView(timeStampView);
+
+        linearLayout.addView(informationLayout);
+
+        return linearLayout;
+    }
+
+    @Override
+    public String toString() {
+        return "HistoryItem{" +
+                "id=" + id +
+                ", qrCode=" + qrCode +
+                ", content='" + content + '\'' +
+                ", type=" + type +
+                ", timestamp=" + timestamp +
+                '}';
     }
 }
