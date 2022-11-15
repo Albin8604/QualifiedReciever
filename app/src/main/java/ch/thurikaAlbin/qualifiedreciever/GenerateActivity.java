@@ -186,7 +186,7 @@ public class GenerateActivity extends AppCompatActivity {
             AppCompatButton chooseFileBtn = new AppCompatButton(this);
             generationInputLayout.addView(chooseFileBtn);
 
-            chooseFileBtn.setId(R.id.chooseFileBtn);
+//            chooseFileBtn.setId(R.id.chooseFileBtn);
 //            chooseFileBtn.setBackground(R.drawable.rounded_corner);
             chooseFileBtn.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
             chooseFileBtn.setText(R.string.choose_file_text);

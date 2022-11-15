@@ -12,6 +12,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 public class QRCodeGenerator {
 
     private static final int SIZE = 300;
+    private static final String QUALIFIED_READER_BLUE = "#3FBAC2";
 
     private final String content;
 
@@ -33,7 +34,7 @@ public class QRCodeGenerator {
         Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.parseColor("#3FBAC2"));
+                bmp.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.parseColor(QUALIFIED_READER_BLUE));
             }
         }
         return bmp;

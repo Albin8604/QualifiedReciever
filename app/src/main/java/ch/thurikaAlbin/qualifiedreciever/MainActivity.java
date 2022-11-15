@@ -28,6 +28,7 @@ import ch.thurikaAlbin.qualifiedreciever.qrCode.QRCodeGenerator;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
+    //todo save darkmode var
     public static boolean isOnDarkMode = false;
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), this::handleResult);
 
