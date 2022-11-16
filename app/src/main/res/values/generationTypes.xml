@@ -2,6 +2,6 @@
 <resources>
     <string-array name="types_array">
         <item>URL</item>
-        <item>WIFI</item>
+        <item>WIFI (WPA)</item>
     </string-array>
 </resources>

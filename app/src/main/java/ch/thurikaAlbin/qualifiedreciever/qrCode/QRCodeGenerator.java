@@ -2,6 +2,7 @@ package ch.thurikaAlbin.qualifiedreciever.qrCode;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.util.Log;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -20,12 +21,16 @@ public class QRCodeGenerator {
         this.content = content;
     }
 
-    public Bitmap generateQRCodeImage() throws WriterException {
+    public Bitmap generateQRCodeImage() {
         QRCodeWriter barcodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix =
-                barcodeWriter.encode(content, BarcodeFormat.QR_CODE, SIZE, SIZE);
-
-        return buildImage(bitMatrix);
+        BitMatrix bitMatrix;
+        try {
+            bitMatrix = barcodeWriter.encode(content, BarcodeFormat.QR_CODE, SIZE, SIZE);
+            return buildImage(bitMatrix);
+        } catch (WriterException e) {
+            Log.d("EXCEPTION",e.getMessage());
+        }
+        return null;
     }
 
     private Bitmap buildImage(BitMatrix bitMatrix) {

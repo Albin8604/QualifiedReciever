@@ -1,10 +1,15 @@
 package ch.thurikaAlbin.qualifiedreciever;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -16,11 +21,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.google.gson.Gson;
 import com.google.zxing.WriterException;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanIntentResult;
 import com.journeyapps.barcodescanner.ScanOptions;
 
+import ch.thurikaAlbin.qualifiedreciever.alert.AlertHelper;
 import ch.thurikaAlbin.qualifiedreciever.data.DataHandler;
 import ch.thurikaAlbin.qualifiedreciever.data.model.HistoryItem;
 import ch.thurikaAlbin.qualifiedreciever.data.model.QRCodeType;
@@ -28,8 +35,9 @@ import ch.thurikaAlbin.qualifiedreciever.qrCode.QRCodeGenerator;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
-    //todo save darkmode var
-    public static boolean isOnDarkMode = false;
+
+    public static final String HISTORY_KEY = "history";
+    public static final String SHARED_PREFERENCES_NAME = "QualifiedReciever";
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), this::handleResult);
 
     @Override
@@ -37,15 +45,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final ImageButton darkModeBtn = findViewById(R.id.darkModeBtn);
         final Button scanBtn = findViewById(R.id.scanBtn);
         final Button generateBtn = findViewById(R.id.generateBtn);
-
-        fillHistory();
-
-        darkModeBtn.setOnClickListener(view -> {
-            switchBetweenDarkAndLightMode();
-        });
 
         scanBtn.setOnClickListener(view -> {
             switchToScan();
@@ -75,17 +76,14 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        DataHandler.convertHistoryToLayout(this).forEach(historyLayout::addView);
-    }
+        DataHandler.convertHistoryToLayout(this).forEach(historyItemLayout -> {
+            historyLayout.addView(historyItemLayout);
+            LinearLayout.LayoutParams layoutParams =
+                    new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            layoutParams.setMargins(0, 10, 0, 10);
 
-    private void switchBetweenDarkAndLightMode() {
-        if (isOnDarkMode) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-            isOnDarkMode = true;
-            return;
-        }
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        isOnDarkMode = false;
+            historyItemLayout.setLayoutParams(layoutParams);
+        });
     }
 
     private void switchToScan() {
@@ -109,25 +107,35 @@ public class MainActivity extends AppCompatActivity {
         try {
 
             if (result.getContents() != null) {
+                String resultAsString = result.getContents();
+
                 HistoryItem historyItem = new HistoryItem();
 
-                historyItem.setContent(result.getContents());
+                historyItem.setContent(resultAsString);
                 historyItem.setType(QRCodeType.Scanned);
-                historyItem.setQrCode(new QRCodeGenerator(result.getContents()).generateQRCodeImage());
+                historyItem.setPreview(resultAsString);
+
+                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clipData = ClipData.newPlainText("", result.getContents());
+                clipboardManager.setPrimaryClip(clipData);
 
                 DataHandler.addHistoryItem(historyItem);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Result");
-                builder.setMessage(result.getContents());
-                builder.setPositiveButton("OK", (dialogInterface, i) -> {
-                    dialogInterface.dismiss();
-                }).show();
+                AlertHelper.buildAndShowAlert(
+                        this,
+                        "Result",
+                        result.getContents() + System.lineSeparator() + "Copied to clipboard",
+                        "OK",
+                        (dialogInterface, i) -> {
+                            dialogInterface.dismiss();
+                        }
+                );
             }
 
             fillHistory();
         } catch (WriterException e) {
             Log.e("EXCEPTION", e.getMessage());
+            AlertHelper.buildAndShowException(this, e);
         }
 
     }
@@ -135,12 +143,29 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (DataHandler.isHistoryEmpty()){
+            final SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
+
+            String jsonString = sharedPreferences.getString(HISTORY_KEY, "");
+
+            DataHandler.convertJSONArrayToHistories(jsonString);
+        }
+
         fillHistory();
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
+
+        Log.d("STOP", "MAIN STOPPED");
+
+        final SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
+
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.putString(HISTORY_KEY, DataHandler.convertHistoryToJSONArray());
+        myEdit.apply();
     }
 }
 

@@ -34,10 +34,9 @@
                 android:hint="@string/ssid_prompt_text" />
         </com.google.android.material.textfield.TextInputLayout>
 
-<!--        TODO PASSWORDFIELD FÜR WIFI-->
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/TODO"
+            android:id="@+id/passwordTextField"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:boxStrokeColor="@color/qualifiedReaderBlue">
@@ -45,8 +44,10 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/url_text_prompt" />
+                android:hint="@string/password_prompt_text"
+                android:inputType="textPassword"/>
         </com.google.android.material.textfield.TextInputLayout>
+
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/urlTextField"

@@ -1,36 +1,36 @@
 package ch.thurikaAlbin.qualifiedreciever;
 
+import static ch.thurikaAlbin.qualifiedreciever.MainActivity.HISTORY_KEY;
+import static ch.thurikaAlbin.qualifiedreciever.MainActivity.SHARED_PREFERENCES_NAME;
+
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.zxing.WriterException;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.List;
+import java.io.ByteArrayOutputStream;
 
 import ch.thurikaAlbin.qualifiedreciever.alert.AlertHelper;
 import ch.thurikaAlbin.qualifiedreciever.data.DataHandler;
+import ch.thurikaAlbin.qualifiedreciever.data.ImageHandler;
 import ch.thurikaAlbin.qualifiedreciever.data.model.HistoryItem;
 import ch.thurikaAlbin.qualifiedreciever.data.model.QRCodeType;
 import ch.thurikaAlbin.qualifiedreciever.qrCode.QRCodeGenerator;
@@ -38,8 +38,19 @@ import ch.thurikaAlbin.qualifiedreciever.qrCode.QRCodeGenerator;
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class GenerateActivity extends AppCompatActivity {
 
+    private static final String SSID_REPLACEMENT = "SSID";
+    private static final String PASSWORD_REPLACEMENT = "PASSWORD";
+    private static final String WIFI_QR_CODE_STRING_TEMPLATE = "WIFI:S:" +
+            SSID_REPLACEMENT +
+            ";T:WPA;P:" +
+            PASSWORD_REPLACEMENT +
+            ";;";
+    private static final String URL_PREFIX = "https://";
+
+    private HistoryItem currentItem = null;
     private Spinner generationTypeSpinner;
     private AppCompatButton generateQrCodeBtn;
+    private ImageButton saveToGalleryBtn;
     private LinearLayout qrCodeLayout;
     private int selectedIndex = -1;
 
@@ -50,6 +61,7 @@ public class GenerateActivity extends AppCompatActivity {
 
         generationTypeSpinner = findViewById(R.id.generationTypeChooser);
         generateQrCodeBtn = findViewById(R.id.generateQrCodeBtn);
+        saveToGalleryBtn = findViewById(R.id.saveQrCodeToGallery);
         qrCodeLayout = findViewById(R.id.qrCodeLayout);
 
         initSpinner();
@@ -70,13 +82,7 @@ public class GenerateActivity extends AppCompatActivity {
         generateQrCodeBtn.setOnClickListener(view -> {
             if (isInputValid()) {
                 try {
-                    Bitmap qrCodeImage = new QRCodeGenerator(getInputValue()).generateQRCodeImage();
-
-                    HistoryItem historyItem = new HistoryItem();
-
-                    historyItem.setContent(getInputValue());
-                    historyItem.setType(getInputType());
-                    historyItem.setQrCode(qrCodeImage);
+                    HistoryItem historyItem = buildItem();
 
                     DataHandler.addHistoryItem(historyItem);
 
@@ -88,22 +94,53 @@ public class GenerateActivity extends AppCompatActivity {
                     configQRCode(qrCode);
 
                     return;
-                } catch (WriterException e) {
+                } catch (Exception e) {
                     Log.e("EXCEPTION", e.getMessage());
+                    AlertHelper.buildAndShowException(this, e);
                 }
             }
 
             AlertHelper.buildAndShowAlert(
                     this,
                     "Error during generation of QR-Code",
-                    "Invalid input for QR-Code, please edit your input",
-                    "Ok",
-                    null
+                    "Invalid input for QR-Code, please edit your input"
             );
+        });
+
+        saveToGalleryBtn.setOnClickListener(view -> {
+            if (currentItem != null) {
+                new ImageHandler(new QRCodeGenerator(currentItem.getContent()).generateQRCodeImage(), getContentResolver(), this).saveImage();
+            }
         });
     }
 
-    private void configQRCode(ImageView imageView){
+    private HistoryItem buildItem() throws WriterException {
+        HistoryItem historyItem = new HistoryItem();
+
+        historyItem.setContent(getInputValue());
+        historyItem.setType(getInputType());
+        historyItem.setPreview(getPreview());
+
+        currentItem = historyItem;
+
+        return historyItem;
+    }
+
+    private String getPreview() throws NullPointerException {
+        String preview;
+        if (selectedIndex == 0) {
+            preview = ((TextInputLayout) findViewById(R.id.urlTextField)).getEditText().getText().toString();
+        } else {
+            preview = ((TextInputLayout) findViewById(R.id.ssidTextField)).getEditText().getText().toString();
+        }
+
+        if (preview.length() <= 15) {
+            return preview;
+        }
+        return preview.substring(0, 14);
+    }
+
+    private void configQRCode(ImageView imageView) {
         imageView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
         imageView.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
     }
@@ -119,19 +156,16 @@ public class GenerateActivity extends AppCompatActivity {
     private String getInputValue() {
         if (selectedIndex == 0) {
             final TextInputLayout urlTextInput = findViewById(R.id.urlTextField);
-            return urlTextInput.getEditText().getText().toString();
+            return URL_PREFIX + urlTextInput.getEditText().getText().toString();
         } else if (selectedIndex == 1) {
-            File file = new File("");
-            StringBuilder stringBuilder = new StringBuilder();
-            try {
-                List<String> allLines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
-                allLines.forEach(line -> {
-                    stringBuilder.append(line).append(System.lineSeparator());
-                });
-                return stringBuilder.toString();
-            } catch (IOException e) {
-                Log.e("EXCEPTION", e.getMessage());
-            }
+            final TextInputLayout ssidTextInput = findViewById(R.id.ssidTextField);
+            final TextInputLayout passwordTextInput = findViewById(R.id.passwordTextField);
+            String ssidInput = ssidTextInput.getEditText().getText().toString();
+            String passwordInput = passwordTextInput.getEditText().getText().toString();
+
+            return WIFI_QR_CODE_STRING_TEMPLATE
+                    .replace(SSID_REPLACEMENT, ssidInput)
+                    .replace(PASSWORD_REPLACEMENT, passwordInput);
         }
 
         return "";
@@ -140,20 +174,25 @@ public class GenerateActivity extends AppCompatActivity {
     private boolean isInputValid() {
         try {
             if (selectedIndex == 0) {
+                Log.d("INPUT_VALIDATION","URL");
                 final TextInputLayout urlTextInput = findViewById(R.id.urlTextField);
                 String userInput = urlTextInput.getEditText().getText().toString();
-                if (userInput.isEmpty()) {
-                    return false;
-                }
+                return !userInput.isEmpty();
 
             } else if (selectedIndex == 1) {
+                Log.d("INPUT_VALIDATION","WIFI");
 
-            } else {
-                return false;
+                final TextInputLayout ssidTextInput = findViewById(R.id.ssidTextField);
+                final TextInputLayout passwordTextInput = findViewById(R.id.passwordTextField);
+                String ssidInput = ssidTextInput.getEditText().getText().toString();
+                String passwordInput = passwordTextInput.getEditText().getText().toString();
+                return !ssidInput.isEmpty() && !passwordInput.isEmpty();
             }
-            return true;
+            return false;
+
         } catch (NullPointerException e) {
             Log.e("EXCEPTION", e.getMessage());
+            AlertHelper.buildAndShowException(this, e);
         }
         return false;
     }
@@ -171,34 +210,60 @@ public class GenerateActivity extends AppCompatActivity {
         LinearLayout generationInputLayout = findViewById(R.id.generationInputLayout);
         generationInputLayout.removeAllViews();
         if (index == 0) {
-            TextInputLayout textInputLayout = new TextInputLayout(this);
-            TextInputEditText textInputEditText = new TextInputEditText(this);
-            textInputLayout.setId(R.id.urlTextField);
-
-//            textInputLayout.setBoxStrokeColor(R.color.mtrl_textinput_default_box_stroke_color);
-
-            textInputEditText.setHint(R.string.url_text_prompt);
-
-            textInputLayout.addView(textInputEditText);
-            generationInputLayout.addView(textInputLayout);
-
+            initURLFields(generationInputLayout);
         } else {
-            AppCompatButton chooseFileBtn = new AppCompatButton(this);
-            generationInputLayout.addView(chooseFileBtn);
-
-//            chooseFileBtn.setId(R.id.chooseFileBtn);
-//            chooseFileBtn.setBackground(R.drawable.rounded_corner);
-            chooseFileBtn.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
-            chooseFileBtn.setText(R.string.choose_file_text);
-
-            chooseFileBtn.setOnClickListener(view -> {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage("CHOOSE FILE BUTTON CLICKED");
-                builder.setPositiveButton("OK", null);
-                builder.show();
-            });
-
+            initWIFIFields(generationInputLayout);
         }
+    }
+
+    private void initURLFields(LinearLayout parent) {
+        TextInputLayout urlInputLayout = new TextInputLayout(this);
+        TextInputEditText urlInputEditText = new TextInputEditText(this);
+        urlInputLayout.setId(R.id.urlTextField);
+
+        urlInputEditText.setHint(R.string.url_text_prompt);
+
+        urlInputEditText.setMaxLines(1);
+        urlInputEditText.setLines(1);
+        urlInputEditText.setSingleLine();
+
+        urlInputLayout.addView(urlInputEditText);
+        parent.addView(urlInputLayout);
+    }
+
+    private void initWIFIFields(LinearLayout parent) {
+        TextInputLayout ssidInputLayout = new TextInputLayout(this);
+        TextInputEditText ssidInputEditText = new TextInputEditText(this);
+        TextInputLayout passwordInputLayout = new TextInputLayout(this);
+        TextInputEditText passwordInputEditText = new TextInputEditText(this);
+
+        ssidInputLayout.addView(ssidInputEditText);
+        passwordInputLayout.addView(passwordInputEditText);
+
+        ssidInputEditText.setMaxLines(1);
+        ssidInputEditText.setLines(1);
+        ssidInputEditText.setSingleLine();
+
+        passwordInputEditText.setMaxLines(1);
+        passwordInputEditText.setLines(1);
+        passwordInputEditText.setSingleLine();
+        passwordInputEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+        ssidInputEditText.setHint(R.string.ssid_prompt_text);
+        passwordInputEditText.setHint(R.string.password_prompt_text);
+
+        parent.addView(ssidInputLayout);
+        parent.addView(passwordInputLayout);
+
+        LinearLayout.LayoutParams layoutParams =
+                new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams.setMargins(0, 10, 0, 10);
+
+        ssidInputLayout.setLayoutParams(layoutParams);
+        passwordInputLayout.setLayoutParams(layoutParams);
+
+        ssidInputLayout.setId(R.id.ssidTextField);
+        passwordInputLayout.setId(R.id.passwordTextField);
     }
 
     @Override
@@ -209,6 +274,10 @@ public class GenerateActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-    }
+        final SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
 
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.putString(HISTORY_KEY, DataHandler.convertHistoryToJSONArray());
+        myEdit.apply();
+    }
 }
