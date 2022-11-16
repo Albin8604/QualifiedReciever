@@ -3,12 +3,7 @@ package ch.thurikaAlbin.qualifiedreciever;
 import static ch.thurikaAlbin.qualifiedreciever.MainActivity.HISTORY_KEY;
 import static ch.thurikaAlbin.qualifiedreciever.MainActivity.SHARED_PREFERENCES_NAME;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
-
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
@@ -22,11 +17,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.zxing.WriterException;
-
-import java.io.ByteArrayOutputStream;
 
 import ch.thurikaAlbin.qualifiedreciever.alert.AlertHelper;
 import ch.thurikaAlbin.qualifiedreciever.data.DataHandler;

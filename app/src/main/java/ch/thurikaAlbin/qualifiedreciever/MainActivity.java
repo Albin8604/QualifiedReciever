@@ -124,7 +124,10 @@ public class MainActivity extends AppCompatActivity {
                 AlertHelper.buildAndShowAlert(
                         this,
                         "Result",
-                        result.getContents() + System.lineSeparator() + "Copied to clipboard",
+                        result.getContents() +
+                                System.lineSeparator() +
+                                System.lineSeparator() +
+                                "Copied to clipboard",
                         "OK",
                         (dialogInterface, i) -> {
                             dialogInterface.dismiss();
@@ -144,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if (DataHandler.isHistoryEmpty()){
+        if (DataHandler.isHistoryEmpty()) {
             final SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
 
             String jsonString = sharedPreferences.getString(HISTORY_KEY, "");
