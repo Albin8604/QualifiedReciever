@@ -9,27 +9,13 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:scrollbarThumbVertical="@color/qualifiedReaderBlue">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" >
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <ImageButton
-                    android:id="@+id/darkModeBtn"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_alignParentEnd="true"
-                    android:background="@drawable/dark_mode_off_btn"
-                    android:clickable="true"
-                    android:contentDescription="@string/night_mode_button_text"
-                    android:focusable="true" />
-            </RelativeLayout>
 
             <ImageView
                 android:id="@+id/logo"
@@ -76,14 +62,15 @@
                     android:textColor="@color/qualifiedReaderBlue"
                     android:textSize="35sp" />
 
-                <LinearLayout
-                    android:id="@+id/layoutHistory"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="10dp" />
 
             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/layoutHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp"
+                />
 
         </LinearLayout>
     </ScrollView>
