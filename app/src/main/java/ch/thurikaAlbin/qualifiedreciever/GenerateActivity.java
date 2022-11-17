@@ -23,15 +23,19 @@ import androidx.appcompat.widget.AppCompatButton;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.zxing.WriterException;
 
 import ch.thurikaAlbin.qualifiedreciever.alert.AlertHelper;
-import ch.thurikaAlbin.qualifiedreciever.data.DataHandler;
+import ch.thurikaAlbin.qualifiedreciever.data.DataManager;
 import ch.thurikaAlbin.qualifiedreciever.data.ImageHandler;
 import ch.thurikaAlbin.qualifiedreciever.data.model.HistoryItem;
 import ch.thurikaAlbin.qualifiedreciever.data.model.QRCodeType;
 import ch.thurikaAlbin.qualifiedreciever.qrCode.QRCodeGenerator;
 
+/**
+ * @author Thurika & Albin
+ * @since 17.11.2022
+ * Generate activity
+ */
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class GenerateActivity extends AppCompatActivity {
 
@@ -51,6 +55,10 @@ public class GenerateActivity extends AppCompatActivity {
     private LinearLayout qrCodeLayout;
     private int selectedIndex = -1;
 
+    /**
+     * Initializes current activity
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +71,9 @@ public class GenerateActivity extends AppCompatActivity {
 
         initSpinner();
 
+        /**
+         * If item changed on the dropdown
+         */
         generationTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
             @Override
@@ -76,12 +87,15 @@ public class GenerateActivity extends AppCompatActivity {
             }
         });
 
+        /**
+         * If generate qr code button clicked
+         */
         generateQrCodeBtn.setOnClickListener(view -> {
             if (isInputValid()) {
                 try {
                     HistoryItem historyItem = buildItem();
 
-                    DataHandler.addHistoryItem(historyItem);
+                    DataManager.getDataHandler().addHistoryItem(historyItem);
 
                     ImageView qrCode = historyItem.convertQrCodeToImageView(this);
 
@@ -104,14 +118,24 @@ public class GenerateActivity extends AppCompatActivity {
             );
         });
 
+        /**
+         * Saves current generated qr code into the gallery
+         */
         saveToGalleryBtn.setOnClickListener(view -> {
             if (currentItem != null) {
-                new ImageHandler(new QRCodeGenerator(currentItem.getContent()).generateQRCodeImage(), getContentResolver(), this).saveImage();
+                new ImageHandler(
+                        new QRCodeGenerator(currentItem.getContent()).generateQRCodeImage(), getContentResolver(), this
+                ).saveImage();
             }
         });
     }
 
-    private HistoryItem buildItem() throws WriterException {
+    /**
+     * Gets the inputs of the different input fields and builds the current history item
+     *
+     * @return built history item
+     */
+    private HistoryItem buildItem() {
         HistoryItem historyItem = new HistoryItem();
 
         historyItem.setContent(getInputValue());
@@ -123,6 +147,11 @@ public class GenerateActivity extends AppCompatActivity {
         return historyItem;
     }
 
+    /**
+     * Gets the preview out of the input fields
+     * @return preview
+     * @throws NullPointerException
+     */
     private String getPreview() throws NullPointerException {
         String preview;
         if (selectedIndex == 0) {
@@ -131,17 +160,22 @@ public class GenerateActivity extends AppCompatActivity {
             preview = ((TextInputLayout) findViewById(R.id.ssidTextField)).getEditText().getText().toString();
         }
 
-        if (preview.length() <= 15) {
-            return preview;
-        }
-        return preview.substring(0, 14);
+        return preview;
     }
 
+    /**
+     * configs size of qr code
+     * @param imageView imageview of qr code
+     */
     private void configQRCode(ImageView imageView) {
         imageView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
         imageView.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
     }
 
+    /**
+     * gets current input type
+     * @return current input type
+     */
     private QRCodeType getInputType() {
         if (selectedIndex == 0) {
             return QRCodeType.GeneratedUrl;
@@ -150,34 +184,46 @@ public class GenerateActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Gets input values of current selected index
+     * @return input values
+     */
     private String getInputValue() {
-        if (selectedIndex == 0) {
-            final TextInputLayout urlTextInput = findViewById(R.id.urlTextField);
-            return URL_PREFIX + urlTextInput.getEditText().getText().toString();
-        } else if (selectedIndex == 1) {
-            final TextInputLayout ssidTextInput = findViewById(R.id.ssidTextField);
-            final TextInputLayout passwordTextInput = findViewById(R.id.passwordTextField);
-            String ssidInput = ssidTextInput.getEditText().getText().toString();
-            String passwordInput = passwordTextInput.getEditText().getText().toString();
+        try {
+            if (selectedIndex == 0) {
+                final TextInputLayout urlTextInput = findViewById(R.id.urlTextField);
+                return URL_PREFIX + urlTextInput.getEditText().getText().toString();
+            } else {
+                final TextInputLayout ssidTextInput = findViewById(R.id.ssidTextField);
+                final TextInputLayout passwordTextInput = findViewById(R.id.passwordTextField);
+                String ssidInput = ssidTextInput.getEditText().getText().toString();
+                String passwordInput = passwordTextInput.getEditText().getText().toString();
 
-            return WIFI_QR_CODE_STRING_TEMPLATE
-                    .replace(SSID_REPLACEMENT, ssidInput)
-                    .replace(PASSWORD_REPLACEMENT, passwordInput);
+                return WIFI_QR_CODE_STRING_TEMPLATE
+                        .replace(SSID_REPLACEMENT, ssidInput)
+                        .replace(PASSWORD_REPLACEMENT, passwordInput);
+            }
+        }catch (NullPointerException e){
+            Log.d("EXCEPTION",e.getMessage());
+            AlertHelper.buildAndShowException(this,e);
         }
-
         return "";
     }
 
+    /**
+     * Validates input 
+     * @return is input valid
+     */
     private boolean isInputValid() {
         try {
             if (selectedIndex == 0) {
-                Log.d("INPUT_VALIDATION","URL");
+                Log.d("INPUT_VALIDATION", "URL");
                 final TextInputLayout urlTextInput = findViewById(R.id.urlTextField);
                 String userInput = urlTextInput.getEditText().getText().toString();
                 return !userInput.isEmpty();
 
-            } else if (selectedIndex == 1) {
-                Log.d("INPUT_VALIDATION","WIFI");
+            } else {
+                Log.d("INPUT_VALIDATION", "WIFI");
 
                 final TextInputLayout ssidTextInput = findViewById(R.id.ssidTextField);
                 final TextInputLayout passwordTextInput = findViewById(R.id.passwordTextField);
@@ -185,8 +231,6 @@ public class GenerateActivity extends AppCompatActivity {
                 String passwordInput = passwordTextInput.getEditText().getText().toString();
                 return !ssidInput.isEmpty() && !passwordInput.isEmpty();
             }
-            return false;
-
         } catch (NullPointerException e) {
             Log.e("EXCEPTION", e.getMessage());
             AlertHelper.buildAndShowException(this, e);
@@ -194,6 +238,9 @@ public class GenerateActivity extends AppCompatActivity {
         return false;
     }
 
+    /**
+     * Initializes the dropdown with the types defined in R.array.types_array
+     */
     private void initSpinner() {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.types_array, android.R.layout.simple_spinner_item);
@@ -201,6 +248,10 @@ public class GenerateActivity extends AppCompatActivity {
         generationTypeSpinner.setAdapter(adapter);
     }
 
+    /**
+     * Changes input field
+     * @param index index to be changed the fields to
+     */
     private void changeContentOnTypeChanged(int index) {
         selectedIndex = index;
 
@@ -213,6 +264,10 @@ public class GenerateActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Initializes the fields needed for the URL
+     * @param parent parent of the URL fields
+     */
     private void initURLFields(LinearLayout parent) {
         TextInputLayout urlInputLayout = new TextInputLayout(this);
         TextInputEditText urlInputEditText = new TextInputEditText(this);
@@ -228,6 +283,10 @@ public class GenerateActivity extends AppCompatActivity {
         parent.addView(urlInputLayout);
     }
 
+    /**
+     * Initializes the fields needed for the WIFI
+     * @param parent parent of the WIFI fields
+     */
     private void initWIFIFields(LinearLayout parent) {
         TextInputLayout ssidInputLayout = new TextInputLayout(this);
         TextInputEditText ssidInputEditText = new TextInputEditText(this);
@@ -263,18 +322,16 @@ public class GenerateActivity extends AppCompatActivity {
         passwordInputLayout.setId(R.id.passwordTextField);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
+    /**
+     * Saves generated qr code
+     */
     @Override
     protected void onPause() {
         super.onPause();
         final SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
 
         SharedPreferences.Editor myEdit = sharedPreferences.edit();
-        myEdit.putString(HISTORY_KEY, DataHandler.convertHistoryToJSONArray());
+        myEdit.putString(HISTORY_KEY, DataManager.getDataHandler().convertHistoryToJSONArray());
         myEdit.apply();
     }
 }

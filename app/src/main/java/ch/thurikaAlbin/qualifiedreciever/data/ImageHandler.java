@@ -9,23 +9,38 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.OutputStream;
 
 import ch.thurikaAlbin.qualifiedreciever.alert.AlertHelper;
 
+/**
+ * @author Thurika & Albin
+ * @since 17.11.2022
+ * Handler for the images
+ */
 public class ImageHandler {
     private final Bitmap bitmap;
     private final ContentResolver contentResolver;
     private final Context context;
 
+    /**
+     * Constructor
+     * @param bitmap bitmap which should be used in this handler
+     * @param contentResolver resolver on which this bitmap should be saved
+     * @param context Context on which this Image should be saved on
+     */
     public ImageHandler(Bitmap bitmap, ContentResolver contentResolver, Context context) {
         this.bitmap = bitmap;
         this.contentResolver = contentResolver;
         this.context = context;
     }
 
+    /**
+     * Saves the bitmap (given in the constructor) into the devices gallery
+     */
     public void saveImage() {
         try {
             String fileName = "qr_code_" + System.currentTimeMillis() + "_.jpg";
@@ -48,10 +63,11 @@ public class ImageHandler {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
             }
 
-            AlertHelper.buildAndShowAlert(context,"Image","QR Code saved to Gallery");
+            Toast.makeText(context, "QR Code saved to Gallery", Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {
-            Log.d("onBtnSavePng", e.toString()); // java.io.IOException: Operation not permitted
+            Log.d("EXCEPTION", e.toString());
+            AlertHelper.buildAndShowException(context,e);
         }
     }
 

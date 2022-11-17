@@ -12,7 +12,7 @@
         android:id="@+id/generationTypeChooser"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/white"
+        android:backgroundTint="@color/qualifiedReaderBlue"
         android:contentDescription="@string/generationType_name"
         android:minHeight="48dp" />
 

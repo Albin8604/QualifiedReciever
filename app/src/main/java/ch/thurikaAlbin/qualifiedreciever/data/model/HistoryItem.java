@@ -4,25 +4,28 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
-import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
-
-import com.google.zxing.WriterException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import ch.thurikaAlbin.qualifiedreciever.R;
-import ch.thurikaAlbin.qualifiedreciever.alert.AlertHelper;
+import ch.thurikaAlbin.qualifiedreciever.data.DataManager;
 import ch.thurikaAlbin.qualifiedreciever.data.ImageHandler;
 import ch.thurikaAlbin.qualifiedreciever.qrCode.QRCodeGenerator;
+import ch.thurikaAlbin.qualifiedreciever.test.OnSwipeTouchListener;
+
+/**
+ * @author Thurika & Albin
+ * @since 17.11.2022
+ * HistoryItem data class
+ */
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class HistoryItem {
@@ -37,11 +40,17 @@ public class HistoryItem {
     private QRCodeType type;
     private LocalDateTime timestamp;
 
+    /**
+     * Constructor
+     */
     public HistoryItem() {
         id = UUID.randomUUID().toString();
         timestamp = LocalDateTime.now();
     }
 
+    /**
+     * Getters & Setters
+     */
     public String getId() {
         return id;
     }
@@ -58,7 +67,7 @@ public class HistoryItem {
         return content;
     }
 
-    public void setContent(String content) throws WriterException {
+    public void setContent(String content) {
         this.content = content;
     }
 
@@ -82,25 +91,42 @@ public class HistoryItem {
         return preview;
     }
 
+    /**
+     * If given preview ist too long, it gets shorten
+     * @param preview given preview
+     */
     public void setPreview(String preview) {
         if (preview.length() > 50) {
-            setPreview(preview.substring(0, 46)+"...");
+            setPreview(preview.substring(0, 46) + "...");
         }
         this.preview = preview;
     }
 
+    /**
+     * Returns timestamp formatted with the format "dd.MM.yyyy HH:mm" as a String
+     * @return formatted timestamp
+     */
     public String getFormattedTimestamp() {
         return getTimestamp().format(FORMATTER);
     }
 
-
+    /**
+     * Converts the QR Code into an ImageView
+     * @param context Context on which the ImageView should be built on
+     * @return created ImageView
+     */
     public ImageView convertQrCodeToImageView(Context context) {
         ImageView imageView = new ImageView(context);
         imageView.setImageBitmap(getQrCode());
         return imageView;
     }
 
-    @SuppressLint("ResourceAsColor")
+    /**
+     * Converts the HistoryItem into an Layout
+     * @param context Context on which this Layout should be built on
+     * @return layout of this HistoryItem
+     */
+    @SuppressLint({"ResourceAsColor", "ClickableViewAccessibility"})
     public LinearLayout convertToLayout(Context context) {
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -143,6 +169,27 @@ public class HistoryItem {
             ).saveImage();
         });
 
+        linearLayout.setOnTouchListener(new OnSwipeTouchListener(context) {
+            @SuppressLint("ClickableViewAccessibility")
+            @Override
+            public void onSwipeLeft() {
+                DataManager.getDataHandler().removeHistoryItem(getId());
+                Toast.makeText(context, "Deleted "+getPreview(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
         return linearLayout;
+    }
+
+    //todo delete
+    @Override
+    public String toString() {
+        return "HistoryItem{" +
+                "id='" + id + '\'' +
+                ", content='" + content + '\'' +
+                ", preview='" + preview + '\'' +
+                ", type=" + type +
+                ", timestamp=" + timestamp +
+                '}';
     }
 }
