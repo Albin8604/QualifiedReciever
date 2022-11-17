@@ -1,8 +1,14 @@
 package ch.thurikaAlbin.qualifiedreciever.data;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
+import static androidx.core.app.ActivityCompat.requestPermissions;
+
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -10,6 +16,8 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -28,9 +36,10 @@ public class ImageHandler {
 
     /**
      * Constructor
-     * @param bitmap bitmap which should be used in this handler
+     *
+     * @param bitmap          bitmap which should be used in this handler
      * @param contentResolver resolver on which this bitmap should be saved
-     * @param context Context on which this Image should be saved on
+     * @param context         Context on which this Image should be saved on
      */
     public ImageHandler(Bitmap bitmap, ContentResolver contentResolver, Context context) {
         this.bitmap = bitmap;
@@ -67,7 +76,7 @@ public class ImageHandler {
 
         } catch (Exception e) {
             Log.d("EXCEPTION", e.toString());
-            AlertHelper.buildAndShowException(context,e);
+            AlertHelper.buildAndShowException(context, e);
         }
     }
 

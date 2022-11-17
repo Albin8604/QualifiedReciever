@@ -1,6 +1,7 @@
 package ch.thurikaAlbin.qualifiedreciever.data.model;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
@@ -18,15 +19,14 @@ import java.util.UUID;
 import ch.thurikaAlbin.qualifiedreciever.R;
 import ch.thurikaAlbin.qualifiedreciever.data.DataManager;
 import ch.thurikaAlbin.qualifiedreciever.data.ImageHandler;
+import ch.thurikaAlbin.qualifiedreciever.listener.OnSwipeTouchListener;
 import ch.thurikaAlbin.qualifiedreciever.qrCode.QRCodeGenerator;
-import ch.thurikaAlbin.qualifiedreciever.test.OnSwipeTouchListener;
 
 /**
  * @author Thurika & Albin
  * @since 17.11.2022
  * HistoryItem data class
  */
-
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class HistoryItem {
     private static final String PATTERN = "dd.MM.yyyy HH:mm";

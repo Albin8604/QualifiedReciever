@@ -1,9 +1,11 @@
 package ch.thurikaAlbin.qualifiedreciever;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static ch.thurikaAlbin.qualifiedreciever.MainActivity.HISTORY_KEY;
 import static ch.thurikaAlbin.qualifiedreciever.MainActivity.SHARED_PREFERENCES_NAME;
 
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
@@ -20,6 +22,7 @@ import android.widget.Spinner;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -47,6 +50,7 @@ public class GenerateActivity extends AppCompatActivity {
             PASSWORD_REPLACEMENT +
             ";;";
     private static final String URL_PREFIX = "https://";
+    public static final int INPUT_FIELDS_MARGIN_TOP_BOTTOM = 10;
 
     private HistoryItem currentItem = null;
     private Spinner generationTypeSpinner;
@@ -57,6 +61,7 @@ public class GenerateActivity extends AppCompatActivity {
 
     /**
      * Initializes current activity
+     *
      * @param savedInstanceState
      */
     @Override
@@ -120,11 +125,14 @@ public class GenerateActivity extends AppCompatActivity {
 
         /**
          * Saves current generated qr code into the gallery
+         * If permission is not granted, it asks for it
          */
         saveToGalleryBtn.setOnClickListener(view -> {
             if (currentItem != null) {
                 new ImageHandler(
-                        new QRCodeGenerator(currentItem.getContent()).generateQRCodeImage(), getContentResolver(), this
+                        new QRCodeGenerator(currentItem.getContent()).generateQRCodeImage(),
+                        getContentResolver(),
+                        this
                 ).saveImage();
             }
         });
@@ -149,6 +157,7 @@ public class GenerateActivity extends AppCompatActivity {
 
     /**
      * Gets the preview out of the input fields
+     *
      * @return preview
      * @throws NullPointerException
      */
@@ -165,6 +174,7 @@ public class GenerateActivity extends AppCompatActivity {
 
     /**
      * configs size of qr code
+     *
      * @param imageView imageview of qr code
      */
     private void configQRCode(ImageView imageView) {
@@ -174,6 +184,7 @@ public class GenerateActivity extends AppCompatActivity {
 
     /**
      * gets current input type
+     *
      * @return current input type
      */
     private QRCodeType getInputType() {
@@ -186,6 +197,7 @@ public class GenerateActivity extends AppCompatActivity {
 
     /**
      * Gets input values of current selected index
+     *
      * @return input values
      */
     private String getInputValue() {
@@ -203,15 +215,16 @@ public class GenerateActivity extends AppCompatActivity {
                         .replace(SSID_REPLACEMENT, ssidInput)
                         .replace(PASSWORD_REPLACEMENT, passwordInput);
             }
-        }catch (NullPointerException e){
-            Log.d("EXCEPTION",e.getMessage());
-            AlertHelper.buildAndShowException(this,e);
+        } catch (NullPointerException e) {
+            Log.d("EXCEPTION", e.getMessage());
+            AlertHelper.buildAndShowException(this, e);
         }
         return "";
     }
 
     /**
-     * Validates input 
+     * Validates input
+     *
      * @return is input valid
      */
     private boolean isInputValid() {
@@ -250,6 +263,7 @@ public class GenerateActivity extends AppCompatActivity {
 
     /**
      * Changes input field
+     *
      * @param index index to be changed the fields to
      */
     private void changeContentOnTypeChanged(int index) {
@@ -266,12 +280,16 @@ public class GenerateActivity extends AppCompatActivity {
 
     /**
      * Initializes the fields needed for the URL
+     *
      * @param parent parent of the URL fields
      */
     private void initURLFields(LinearLayout parent) {
         TextInputLayout urlInputLayout = new TextInputLayout(this);
         TextInputEditText urlInputEditText = new TextInputEditText(this);
+
         urlInputLayout.setId(R.id.urlTextField);
+
+        urlInputLayout.addView(urlInputEditText);
 
         urlInputEditText.setHint(R.string.url_text_prompt);
 
@@ -279,12 +297,14 @@ public class GenerateActivity extends AppCompatActivity {
         urlInputEditText.setLines(1);
         urlInputEditText.setSingleLine();
 
-        urlInputLayout.addView(urlInputEditText);
         parent.addView(urlInputLayout);
+
+        urlInputLayout.setLayoutParams(getLayoutParamsForInputFields());
     }
 
     /**
      * Initializes the fields needed for the WIFI
+     *
      * @param parent parent of the WIFI fields
      */
     private void initWIFIFields(LinearLayout parent) {
@@ -293,8 +313,14 @@ public class GenerateActivity extends AppCompatActivity {
         TextInputLayout passwordInputLayout = new TextInputLayout(this);
         TextInputEditText passwordInputEditText = new TextInputEditText(this);
 
+        ssidInputLayout.setId(R.id.ssidTextField);
+        passwordInputLayout.setId(R.id.passwordTextField);
+
         ssidInputLayout.addView(ssidInputEditText);
         passwordInputLayout.addView(passwordInputEditText);
+
+        ssidInputEditText.setHint(R.string.ssid_prompt_text);
+        passwordInputEditText.setHint(R.string.password_prompt_text);
 
         ssidInputEditText.setMaxLines(1);
         ssidInputEditText.setLines(1);
@@ -305,21 +331,24 @@ public class GenerateActivity extends AppCompatActivity {
         passwordInputEditText.setSingleLine();
         passwordInputEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 
-        ssidInputEditText.setHint(R.string.ssid_prompt_text);
-        passwordInputEditText.setHint(R.string.password_prompt_text);
-
         parent.addView(ssidInputLayout);
         parent.addView(passwordInputLayout);
 
-        LinearLayout.LayoutParams layoutParams =
-                new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        layoutParams.setMargins(0, 10, 0, 10);
+        ssidInputLayout.setLayoutParams(getLayoutParamsForInputFields());
+        passwordInputLayout.setLayoutParams(getLayoutParamsForInputFields());
+    }
 
-        ssidInputLayout.setLayoutParams(layoutParams);
-        passwordInputLayout.setLayoutParams(layoutParams);
-
-        ssidInputLayout.setId(R.id.ssidTextField);
-        passwordInputLayout.setId(R.id.passwordTextField);
+    /**
+     * Gets layout params for the input fields
+     *
+     * @return layout params
+     */
+    public ViewGroup.LayoutParams getLayoutParamsForInputFields() {
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        layoutParams.setMargins(0, INPUT_FIELDS_MARGIN_TOP_BOTTOM, 0, INPUT_FIELDS_MARGIN_TOP_BOTTOM);
+        return layoutParams;
     }
 
     /**

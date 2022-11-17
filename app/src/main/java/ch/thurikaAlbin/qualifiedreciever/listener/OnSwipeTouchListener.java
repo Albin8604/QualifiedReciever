@@ -1,4 +1,4 @@
-package ch.thurikaAlbin.qualifiedreciever.test;
+package ch.thurikaAlbin.qualifiedreciever.listener;
 
 import android.content.Context;
 import android.view.GestureDetector;
@@ -7,6 +7,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
+/**
+ * @author Thurika & Albin
+ * @since 17.11.2022
+ * Listener for the swipe on the history items
+ */
 public class OnSwipeTouchListener implements OnTouchListener {
 
     private final GestureDetector gestureDetector;
