@@ -36,22 +36,19 @@ public class DataHandler extends Observable {
      */
     public void addHistoryItem(HistoryItem historyItem) {
         HISTORY.add(historyItem);
+        setChanged();
+        notifyObservers();
     }
 
     /**
      * Removes a HistoryItem of the current History
      *
-     * @param id of item to be removed
+     * @param historyItem item to be removed
      */
-    public void removeHistoryItem(String id) {
-        for (HistoryItem historyItem : HISTORY) {
-            if (historyItem.getId().equals(id)){
-                HISTORY.remove(historyItem);
-                setChanged();
-                notifyObservers();
-                return;
-            }
-        }
+    public void removeHistoryItem(HistoryItem historyItem) {
+        HISTORY.remove(historyItem);
+        setChanged();
+        notifyObservers();
     }
 
     /**

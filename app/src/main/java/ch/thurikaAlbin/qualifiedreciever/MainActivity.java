@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
             requestPermissions(new String[]{WRITE_EXTERNAL_STORAGE},1);
         }
 
-
         DataManager.addObserver(this);
 
         final Button scanBtn = findViewById(R.id.scanBtn);
@@ -155,8 +154,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
                             "Copied to clipboard"
             );
         }
-
-        fillHistory();
     }
 
     /**
