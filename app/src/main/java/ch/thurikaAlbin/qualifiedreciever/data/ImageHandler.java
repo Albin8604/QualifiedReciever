@@ -1,14 +1,8 @@
 package ch.thurikaAlbin.qualifiedreciever.data;
 
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-
-import static androidx.core.app.ActivityCompat.requestPermissions;
-
-import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -16,8 +10,6 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
-
-import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.io.OutputStream;

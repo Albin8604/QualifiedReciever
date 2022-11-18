@@ -1,11 +1,9 @@
 package ch.thurikaAlbin.qualifiedreciever;
 
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static ch.thurikaAlbin.qualifiedreciever.MainActivity.HISTORY_KEY;
 import static ch.thurikaAlbin.qualifiedreciever.MainActivity.SHARED_PREFERENCES_NAME;
 
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
@@ -22,7 +20,6 @@ import android.widget.Spinner;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
-import androidx.core.content.ContextCompat;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
