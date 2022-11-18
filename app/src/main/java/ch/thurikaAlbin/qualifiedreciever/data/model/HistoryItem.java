@@ -160,20 +160,21 @@ public class HistoryItem {
         linearLayout.addView(informationLayout);
         linearLayout.setPadding(PADDING, PADDING, PADDING, PADDING);
 
-        linearLayout.setOnClickListener(view -> {
-            new ImageHandler(
-                    new QRCodeGenerator(getContent()).generateQRCodeImage(),
-                    context.getContentResolver(),
-                    context
-            ).saveImage();
-        });
-
         linearLayout.setOnTouchListener(new OnSwipeTouchListener(context) {
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public void onSwipeLeft() {
                 DataManager.getDataHandler().removeHistoryItem(HistoryItem.this);
                 Toast.makeText(context, "Deleted "+getPreview(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onSwipeRight() {
+                new ImageHandler(
+                        new QRCodeGenerator(getContent()).generateQRCodeImage(),
+                        context.getContentResolver(),
+                        context
+                ).saveImage();
             }
         });
 
